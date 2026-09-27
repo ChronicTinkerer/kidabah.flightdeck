@@ -10,7 +10,7 @@ Rib the snoring (stays asleep, snore stops): **you sound like a bear**, **stop s
 
 Ask her to **whistle** or **sing** anytime (voice or type) and she plays a real whistle melody (`viewer/sounds/amy-whistle.wav`).
 
-SFX lives in `jarvis/viewer/sounds/`:
+SFX lives in `amy/viewer/sounds/`:
 - `amy-whistle.wav` — on-demand whistle/sing
 - `amy-yawn.wav` — idle sleepy nudge + bedtime
 - `amy-snore.wav` — looping snores while asleep (swap for a better 16-bit WAV anytime)

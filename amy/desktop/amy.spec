@@ -5,26 +5,26 @@ from pathlib import Path
 from PyInstaller.utils.hooks import collect_data_files, collect_dynamic_libs
 
 SPECDIR = Path(SPECPATH).resolve()
-JARVIS = SPECDIR.parent
+AMY = SPECDIR.parent
 DESKTOP = SPECDIR
 
 datas = [
-    (str(JARVIS / "viewer"), "jarvis/viewer"),
-    (str(JARVIS / "notes"), "jarvis/notes"),
-    (str(JARVIS / "amy-hands"), "jarvis/amy-hands"),
-    (str(JARVIS / "config.example.json"), "jarvis"),
-    (str(JARVIS / "build.py"), "jarvis"),
-    (str(JARVIS / "server.py"), "jarvis"),
-    (str(JARVIS / "preflight.py"), "jarvis"),
-    (str(DESKTOP / "paths.py"), "jarvis/desktop"),
+    (str(AMY / "viewer"), "amy/viewer"),
+    (str(AMY / "notes"), "amy/notes"),
+    (str(AMY / "amy-hands"), "amy/amy-hands"),
+    (str(AMY / "config.example.json"), "amy"),
+    (str(AMY / "build.py"), "amy"),
+    (str(AMY / "server.py"), "amy"),
+    (str(AMY / "preflight.py"), "amy"),
+    (str(DESKTOP / "paths.py"), "amy/desktop"),
 ]
 
-graph = JARVIS / "viewer" / "graph-data.js"
+graph = AMY / "viewer" / "graph-data.js"
 if graph.exists():
-    datas.append((str(graph), "jarvis/viewer"))
-index = JARVIS / "notes-index.json"
+    datas.append((str(graph), "amy/viewer"))
+index = AMY / "notes-index.json"
 if index.exists():
-    datas.append((str(index), "jarvis"))
+    datas.append((str(index), "amy"))
 
 datas += collect_data_files("webview")
 binaries = collect_dynamic_libs("webview")
@@ -41,7 +41,7 @@ hiddenimports = [
 
 a = Analysis(
     [str(DESKTOP / "launch.py")],
-    pathex=[str(JARVIS), str(DESKTOP)],
+    pathex=[str(AMY), str(DESKTOP)],
     binaries=binaries,
     datas=datas,
     hiddenimports=hiddenimports,

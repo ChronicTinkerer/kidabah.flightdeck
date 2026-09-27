@@ -3,9 +3,9 @@ import json
 from pathlib import Path
 
 paths = [
-    Path("/home/flightdeck/flightdeck/jarvis/config.json"),
-    Path("/home/flightdeck/jarvis/config.json"),
-    Path("/home/flightdeck/flightdeck/jarvis/config.example.json"),
+    Path("/home/flightdeck/flightdeck/amy/config.json"),
+    Path("/home/flightdeck/amy/config.json"),
+    Path("/home/flightdeck/flightdeck/amy/config.example.json"),
 ]
 for p in paths:
     print("exists" if p.exists() else "missing", p)

@@ -1,9 +1,9 @@
 # Start Amy desktop (dev / unpackaged).
 $ErrorActionPreference = "Stop"
 $DesktopDir = $PSScriptRoot
-$Jarvis = Split-Path -Parent $DesktopDir
+$Amy = Split-Path -Parent $DesktopDir
 $Launch = Join-Path $DesktopDir "launch.py"
-Set-Location $Jarvis
+Set-Location $Amy
 
 function Resolve-AmyPython {
   $candidates = @(

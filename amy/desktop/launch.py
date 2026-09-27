@@ -17,11 +17,11 @@ import webbrowser
 from pathlib import Path
 
 _DESKTOP = Path(__file__).resolve().parent
-_JARVIS = _DESKTOP.parent
+_AMY = _DESKTOP.parent
 if str(_DESKTOP) not in sys.path:
     sys.path.insert(0, str(_DESKTOP))
-if str(_JARVIS) not in sys.path:
-    sys.path.insert(0, str(_JARVIS))
+if str(_AMY) not in sys.path:
+    sys.path.insert(0, str(_AMY))
 
 from paths import (  # noqa: E402
     app_data_dir,
@@ -29,7 +29,7 @@ from paths import (  # noqa: E402
     ensure_desktop_config,
     hands_script,
     is_frozen,
-    jarvis_root,
+    amy_root,
     server_script,
     uploads_dir,
 )
@@ -282,7 +282,7 @@ def _wait_url(url: str, label: str, timeout_s: float = 30.0) -> None:
 
 
 def _apply_env() -> dict[str, str]:
-    root = jarvis_root()
+    root = amy_root()
     cfg = ensure_desktop_config()
     env = os.environ.copy()
     env["AMY_ROOT"] = str(root)
@@ -334,7 +334,7 @@ def start_amy(env: dict[str, str]) -> None:
     if _http_ok(AMY_HEALTH):
         print("[amy-desktop] Amy already listening on :4700 - reusing")
         return
-    root = jarvis_root()
+    root = amy_root()
     graph = root / "viewer" / "graph-data.js"
     if not graph.exists():
         print("[amy-desktop] building notes index...")
@@ -516,7 +516,7 @@ def main() -> int:
             pass
     app_data_dir()
     env = _apply_env()
-    print("[amy-desktop] root", jarvis_root())
+    print("[amy-desktop] root", amy_root())
     print("[amy-desktop] frozen" if is_frozen() else "[amy-desktop] dev")
     print("[amy-desktop]", _config_hint())
 

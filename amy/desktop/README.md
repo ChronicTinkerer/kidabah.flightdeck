@@ -14,7 +14,7 @@ Flightdeck / printers still talk to the Pi over Tailscale via `flightdeck_base_u
 ## Dev launch (no freeze)
 
 ```powershell
-cd C:\Users\Kidabah\flightdeck\jarvis\desktop
+cd C:\Users\Kidabah\flightdeck\amy\desktop
 .\start-amy-desktop.ps1
 ```
 
@@ -35,18 +35,18 @@ Paste your **OpenAI** and **ElevenLabs** keys into that AppData config (never co
 Folder search works with Hands alone. Tabs still need the unpacked extension:
 
 1. `chrome://extensions` → Developer mode
-2. Load unpacked → `jarvis/amy-hands/chrome-extension`
+2. Load unpacked → `amy/amy-hands/chrome-extension`
 
-Or run `jarvis/amy-hands/start-amy-hands.ps1` for the helper prompts.
+Or run `amy/amy-hands/start-amy-hands.ps1` for the helper prompts.
 
 ## Build installable folder
 
 ```powershell
-cd C:\Users\Kidabah\flightdeck\jarvis\desktop
+cd C:\Users\Kidabah\flightdeck\amy\desktop
 .\build-windows.ps1
 ```
 
-Output: `jarvis/desktop/dist/Amy/Amy.exe` (one-folder). Copy that folder anywhere;
+Output: `amy/desktop/dist/Amy/Amy.exe` (one-folder). Copy that folder anywhere;
 first run still uses `%APPDATA%\Amy\config.json`.
 
 Requires [WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/) (already on most Win10/11 boxes).
@@ -55,9 +55,9 @@ Requires [WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webvi
 
 | Env | Purpose |
 |-----|---------|
-| `AMY_ROOT` | jarvis tree (viewer, notes, server.py) |
+| `AMY_ROOT` | amy tree (viewer, notes, server.py) |
 | `AMY_CONFIG` | config.json path |
 | `AMY_UPLOADS` | upload directory |
 | `AMY_BIND` | server bind host (desktop forces `127.0.0.1`) |
 
-Pi continues to use repo `jarvis/config.json` and bind `0.0.0.0` unless overridden.
+Pi continues to use repo `amy/config.json` and bind `0.0.0.0` unless overridden.

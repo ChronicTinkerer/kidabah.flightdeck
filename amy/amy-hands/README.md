@@ -5,7 +5,7 @@ Gives Amy access to **your folders** and **Chrome tabs** on this PC.
 ## Quick start
 
 ```powershell
-cd C:\Users\Kidabah\flightdeck\jarvis\amy-hands
+cd C:\Users\Kidabah\flightdeck\amy\amy-hands
 .\start-amy-hands.ps1
 ```
 
@@ -15,7 +15,7 @@ That starts Hands on **:4701** and opens the extension folder + `chrome://extens
 
 1. Chrome → `chrome://extensions`
 2. Enable **Developer mode**
-3. **Load unpacked** → select `jarvis/amy-hands/chrome-extension`
+3. **Load unpacked** → select `amy/amy-hands/chrome-extension`
 4. Keep Hands running; health should show `extension_seen_ago_s` updating
 
 Folder search works **without** the extension. Tab list/focus/open need it.
@@ -50,7 +50,7 @@ File ops stay inside configured **roots** (Desktop / Documents / Downloads / fli
 
 ## Point Amy (Pi) at Hands
 
-In `jarvis/config.json` on the Pi:
+In `amy/config.json` on the Pi:
 
 ```json
 "hands_base_url": "http://YOUR-PC-TAILSCALE-IP:4701"

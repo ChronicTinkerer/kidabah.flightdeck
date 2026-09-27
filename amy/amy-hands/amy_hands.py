@@ -5,7 +5,7 @@ Run on Chris's PC (not the Pi):
   python amy_hands.py
 
 Amy on the Pi calls this over Tailscale:
-  hands_base_url in jarvis/config.json  e.g. http://100.x.x.x:4701
+  hands_base_url in amy/config.json  e.g. http://100.x.x.x:4701
 
 Chrome tabs need the companion extension loaded (chrome://extensions → Load unpacked → chrome-extension/).
 
@@ -85,7 +85,7 @@ try:
         restore_window as _restore_window,
     )
 except ImportError:  # pragma: no cover
-    from jarvis.amy_hands.desktop_actions import (  # type: ignore
+    from amy.amy_hands.desktop_actions import (  # type: ignore
         app_audio as _app_audio,
         close_window as _close_window,
         copy_path as _copy_path,

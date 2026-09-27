@@ -7,7 +7,7 @@ Voice + notes galaxy for Chris's Flightdeck bench. Brain: **GPT-5.6 Luna**.
 Local-brain wrap (same UI + Hands). Pi browser Amy stays available.
 
 ```powershell
-cd jarvis\desktop
+cd amy\desktop
 .\start-amy-desktop.ps1
 ```
 
@@ -17,7 +17,7 @@ See [desktop/README.md](desktop/README.md).
 
 ## Hosting
 
-Runs on the Flightdeck Pi (`jarvis/` folder in repo — systemd unit is still `jarvis.service`). Port **4700**.
+Runs on the Flightdeck Pi (`amy/` folder in repo, user systemd unit `amy.service`). Port **4700**.
 
 **Use HTTPS for the mic:**
 
@@ -28,8 +28,8 @@ https://flightdeck.tail7de73e.ts.net:4700
 Amy speaks as **Laura** (`FGY2WhTYpPnrIDTdsKH5`) when an ElevenLabs key is set.
 
 1. Create a key: https://elevenlabs.io/app/settings/api-keys
-2. On the Pi: `ELEVENLABS_API_KEY='…' python3 jarvis/deploy/set-elevenlabs-key.py`
-3. `systemctl --user restart jarvis`
+2. On the Pi: `ELEVENLABS_API_KEY='…' python3 amy/deploy/set-elevenlabs-key.py`
+3. `systemctl --user restart amy`
 
 Without that key she falls back to browser TTS.
 
@@ -47,7 +47,7 @@ API keys: https://platform.openai.com/api-keys
 1. Copy `config.example.json` → `config.json` (model is already `gpt-5.6-luna`)
 2. Paste key, or run `python3 deploy/set-openai-key.py`
 3. `python3 build.py`
-4. `systemctl --user restart jarvis`
+4. `systemctl --user restart amy`
 5. Open the HTTPS URL — click once to unlock speech, then talk or type
 
 ## Files + internet

@@ -50,7 +50,7 @@ def main() -> int:
     CONFIG.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
     os.chmod(CONFIG, 0o600)
     print(f"Wrote Luna brain key to {CONFIG} (mode 600). Restart:")
-    print("  systemctl --user restart jarvis")
+    print("  systemctl --user restart amy")
     return 0
 
 

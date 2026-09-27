@@ -12,14 +12,14 @@ const GRAPH = {
       "label": "amy desktop",
       "group": "workshop",
       "path": "workshop/amy-desktop.md",
-      "excerpt": "# Amy desktop (Windows wrap) Runs local Amy brain + Hands in a WebView2 window. Pi HTTPS Amy is unchanged. ```powershell cd jarvis\\desktop .\\start-amy-desktop.ps1 ``` First run: `%APPDATA%\\Amy\\config.json` — paste OpenAI / ElevenLabs keys; set `flightdeck_base_url` to the Pi Tailscale Flightdeck URL. Tabs: load unpacked `jarvis/amy-hands/chrome-extension`."
+      "excerpt": "# Amy desktop (Windows wrap) Runs local Amy brain + Hands in a WebView2 window. Pi HTTPS Amy is unchanged. ```powershell cd amy\\desktop .\\start-amy-desktop.ps1 ``` First run: `%APPDATA%\\Amy\\config.json` — paste OpenAI / ElevenLabs keys; set `flightdeck_base_url` to the Pi Tailscale Flightdeck URL. Tabs: load unpacked `amy/amy-hands/chrome-extension`."
     },
     {
       "id": 2,
       "label": "amy files",
       "group": "workshop",
       "path": "workshop/amy-files.md",
-      "excerpt": "# Dropping files on Amy Chris can drag files onto Amy's dock (or hit **FILE** / 📎). She reads: - Text / code / logs / gcode / markdown / json / csv / svg - Images (vision) Max **4 files**, **8MB** each. Binary blobs she can't preview are still saved under `jarvis/uploads/`. Ask her about the drop, or just hit ASK with files attached."
+      "excerpt": "# Dropping files on Amy Chris can drag files onto Amy's dock (or hit **FILE** / 📎). She reads: - Text / code / logs / gcode / markdown / json / csv / svg - Images (vision) Max **4 files**, **8MB** each. Binary blobs she can't preview are still saved under `amy/uploads/`. Ask her about the drop, or just hit ASK with files attached."
     },
     {
       "id": 3,
@@ -40,7 +40,7 @@ const GRAPH = {
       "label": "amy sleep",
       "group": "workshop",
       "path": "workshop/amy-sleep.md",
-      "excerpt": "# Amy sleep + idle After ~3 minutes quiet she **yawns** (real WAV) and nudges you that she’s getting sleepy. After ~6 minutes she enters **sleep** — circle goes dark, then she **snores** (looping WAV). Or tuck her in anytime: **bedtime** / **goodnight** / **night night** / **go to sleep** → she says goodnight, yawns, and sleeps. Wake her with **wake up Amy**, **hey Amy**, click her face, or MIC/ASK. Rib the snoring (stays asleep, snore stops): **you sound like a bear**, **stop snoring**, **quiet**, **shh**, etc. Ask her to **whistle** or **sing** anytime (voice or type) and she plays a real whistle melody (`viewer/sounds/amy-whistle.wav`). SFX lives in `jarvis/viewer/sounds/`: - `amy-whistl…"
+      "excerpt": "# Amy sleep + idle After ~3 minutes quiet she **yawns** (real WAV) and nudges you that she’s getting sleepy. After ~6 minutes she enters **sleep** — circle goes dark, then she **snores** (looping WAV). Or tuck her in anytime: **bedtime** / **goodnight** / **night night** / **go to sleep** → she says goodnight, yawns, and sleeps. Wake her with **wake up Amy**, **hey Amy**, click her face, or MIC/ASK. Rib the snoring (stays asleep, snore stops): **you sound like a bear**, **stop snoring**, **quiet**, **shh**, etc. Ask her to **whistle** or **sing** anytime (voice or type) and she plays a real whistle melody (`viewer/sounds/amy-whistle.wav`). SFX lives in `amy/viewer/sounds/`: - `amy-whistl…"
     },
     {
       "id": 6,

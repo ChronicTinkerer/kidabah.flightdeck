@@ -40,7 +40,7 @@ def _resolve_uploads(root: Path, config_path: Path) -> Path:
     env = (os.environ.get("AMY_UPLOADS") or "").strip()
     if env:
         return Path(env).expanduser().resolve()
-    # Desktop AppData config → keep uploads beside it; Pi → jarvis/uploads.
+    # Desktop AppData config → keep uploads beside it; Pi → amy/uploads.
     if config_path.parent != root:
         return config_path.parent / "uploads"
     return root / "uploads"
@@ -1018,7 +1018,7 @@ def hands_extension_alive(max_age_s: float = 8.0) -> tuple[bool, str]:
     if ago is None:
         return False, (
             "Chrome extension isn't connected. On the PC: chrome://extensions → "
-            "Load unpacked → jarvis/amy-hands/chrome-extension (keep Hands running)."
+            "Load unpacked → amy/amy-hands/chrome-extension (keep Hands running)."
         )
     if float(ago) > max_age_s:
         return False, f"Chrome extension last seen {ago}s ago — reload the Amy Hands extension."
@@ -2174,7 +2174,7 @@ def _explicit_printer_control(question: str) -> bool:
     try:
         from workshop_actions import explicit_printer_control
     except ImportError:
-        from jarvis.workshop_actions import explicit_printer_control
+        from amy.workshop_actions import explicit_printer_control
     return explicit_printer_control(question, bool(resolve_printer(question)[0])) is not None
 
 
@@ -2832,7 +2832,7 @@ def _where_spool(spool: dict[str, Any]) -> str:
     try:
         from workshop_actions import describe_ams_slot, printer_label_for
     except ImportError:
-        from jarvis.workshop_actions import describe_ams_slot, printer_label_for
+        from amy.workshop_actions import describe_ams_slot, printer_label_for
     printer_id = str(spool.get("location_printer_id") or "")
     slot = spool.get("location_slot")
     if not printer_id or slot is None:
@@ -2877,7 +2877,7 @@ def try_spool_check(question: str) -> dict[str, Any] | None:
     try:
         from workshop_actions import parse_spool_check
     except ImportError:
-        from jarvis.workshop_actions import parse_spool_check
+        from amy.workshop_actions import parse_spool_check
     parsed = parse_spool_check(question)
     if not parsed:
         return None
@@ -2913,7 +2913,7 @@ def try_spool_check(question: str) -> dict[str, Any] | None:
                 try:
                     from workshop_actions import printer_label_for
                 except ImportError:
-                    from jarvis.workshop_actions import printer_label_for
+                    from amy.workshop_actions import printer_label_for
                 printer_label = printer_label_for(printer_id)
     loaded: list[dict[str, Any]] = []
     if printer_id:
@@ -3003,7 +3003,7 @@ def try_spool_change(question: str) -> dict[str, Any] | None:
     try:
         from workshop_actions import parse_spool_change
     except ImportError:
-        from jarvis.workshop_actions import parse_spool_change
+        from amy.workshop_actions import parse_spool_change
     parsed = parse_spool_change(question)
     if not parsed:
         return None
@@ -3087,7 +3087,7 @@ def try_queue_local_file(question: str) -> dict[str, Any] | None:
     try:
         from workshop_actions import match_named_files, parse_queue_local_file
     except ImportError:
-        from jarvis.workshop_actions import match_named_files, parse_queue_local_file
+        from amy.workshop_actions import match_named_files, parse_queue_local_file
     parsed = parse_queue_local_file(question)
     if not parsed:
         return None
@@ -3216,7 +3216,7 @@ def try_open_folder(question: str) -> dict[str, Any] | None:
     try:
         from workshop_actions import parse_open_folder
     except ImportError:
-        from jarvis.workshop_actions import parse_open_folder
+        from amy.workshop_actions import parse_open_folder
     name = parse_open_folder(question)
     if not name:
         return None
@@ -3252,7 +3252,7 @@ def try_flightdeck_page(question: str) -> dict[str, Any] | None:
     try:
         from workshop_actions import parse_flightdeck_page
     except ImportError:
-        from jarvis.workshop_actions import parse_flightdeck_page
+        from amy.workshop_actions import parse_flightdeck_page
     page = parse_flightdeck_page(question)
     if not page:
         return None

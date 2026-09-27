@@ -1717,7 +1717,7 @@ function armSleepGif() {
   const layer = document.getElementById('lights-out');
   const img = document.getElementById('lights-out-gif');
   if (!layer || !img) return;
-  // Drop a file at jarvis/viewer/sounds/amy-sleep.gif to replace the CSS zzz.
+  // Drop a file at amy/viewer/sounds/amy-sleep.gif to replace the CSS zzz.
   const src = `/sounds/amy-sleep.gif?v=${Date.now()}`;
   img.onload = () => layer.classList.add('has-gif');
   img.onerror = () => {

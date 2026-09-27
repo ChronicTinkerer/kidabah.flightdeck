@@ -38,5 +38,5 @@ if (-not (Test-Path (Join-Path $Out "Amy.exe"))) {
 Write-Host ""
 Write-Host "Built: $Out\Amy.exe"
 Write-Host "First run creates %APPDATA%\Amy\config.json - add API keys there."
-Write-Host "Chrome tabs still need Load unpacked -> jarvis\amy-hands\chrome-extension"
+Write-Host "Chrome tabs still need Load unpacked -> amy\amy-hands\chrome-extension"
 Write-Host "Pi browser Amy is unchanged."

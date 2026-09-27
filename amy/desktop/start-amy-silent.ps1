@@ -1,7 +1,7 @@
 # Launch Amy with no PowerShell / Hands console windows — only the Amy frame.
 $ErrorActionPreference = "Stop"
 $DesktopDir = $PSScriptRoot
-$Jarvis = Split-Path -Parent $DesktopDir
+$Amy = Split-Path -Parent $DesktopDir
 $Launch = Join-Path $DesktopDir "launch.py"
 
 function Resolve-AmyPythonW {
@@ -19,11 +19,11 @@ function Resolve-AmyPythonW {
 }
 
 $Python = Resolve-AmyPythonW
-Set-Location $Jarvis
+Set-Location $Amy
 $psi = New-Object System.Diagnostics.ProcessStartInfo
 $psi.FileName = $Python
 $psi.Arguments = "`"$Launch`""
-$psi.WorkingDirectory = $Jarvis
+$psi.WorkingDirectory = $Amy
 $psi.UseShellExecute = $false
 $psi.CreateNoWindow = $true
 [System.Diagnostics.Process]::Start($psi) | Out-Null

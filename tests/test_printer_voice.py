@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 def _actions():
-    path = Path(__file__).resolve().parents[1] / "jarvis" / "workshop_actions.py"
+    path = Path(__file__).resolve().parents[1] / "amy" / "workshop_actions.py"
     spec = importlib.util.spec_from_file_location("workshop_actions", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)

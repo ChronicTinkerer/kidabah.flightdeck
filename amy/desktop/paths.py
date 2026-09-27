@@ -14,7 +14,7 @@ def is_frozen() -> bool:
     return bool(getattr(sys, "frozen", False))
 
 
-def jarvis_root() -> Path:
+def amy_root() -> Path:
     """Directory that contains server.py, viewer/, notes/, amy-hands/."""
     env = (os.environ.get("AMY_ROOT") or "").strip()
     if env:
@@ -23,14 +23,14 @@ def jarvis_root() -> Path:
         # PyInstaller onedir: _MEIPASS holds bundled data; exe sits in dist/Amy/
         meipass = getattr(sys, "_MEIPASS", None)
         if meipass:
-            bundled = Path(meipass) / "jarvis"
+            bundled = Path(meipass) / "amy"
             if (bundled / "server.py").exists() or (bundled / "viewer").exists():
                 return bundled.resolve()
-            # Spec may unpack jarvis contents at _MEIPASS root
+            # Spec may unpack amy contents at _MEIPASS root
             if (Path(meipass) / "viewer").exists():
                 return Path(meipass).resolve()
         return Path(sys.executable).resolve().parent
-    # jarvis/desktop/paths.py → jarvis/
+    # amy/desktop/paths.py → amy/
     return Path(__file__).resolve().parent.parent
 
 
@@ -61,7 +61,7 @@ def uploads_dir() -> Path:
 
 
 def hands_dir() -> Path:
-    return jarvis_root() / "amy-hands"
+    return amy_root() / "amy-hands"
 
 
 def hands_script() -> Path:
@@ -69,7 +69,7 @@ def hands_script() -> Path:
 
 
 def server_script() -> Path:
-    return jarvis_root() / "server.py"
+    return amy_root() / "server.py"
 
 
 def ensure_desktop_config(flightdeck_default: str = "https://flightdeck.tail7de73e.ts.net") -> Path:
@@ -79,8 +79,8 @@ def ensure_desktop_config(flightdeck_default: str = "https://flightdeck.tail7de7
     cfg = config_path()
     if cfg.exists():
         return cfg
-    example = jarvis_root() / "config.example.json"
-    repo_cfg = jarvis_root() / "config.json"
+    example = amy_root() / "config.example.json"
+    repo_cfg = amy_root() / "config.json"
     if repo_cfg.exists():
         try:
             obj = json.loads(repo_cfg.read_text(encoding="utf-8"))

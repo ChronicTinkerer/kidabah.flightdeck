@@ -17,7 +17,7 @@ SSH = [
     "-o",
     "ConnectTimeout=15",
     "flightdeck@100.106.112.104",
-    "python3 -c \"import json;print(json.dumps(json.load(open('/home/flightdeck/flightdeck/jarvis/config.json'))))\"",
+    "python3 -c \"import json;print(json.dumps(json.load(open('/home/flightdeck/flightdeck/amy/config.json'))))\"",
 ]
 
 
