@@ -1,3 +1,12 @@
+## 2026-09-27 Session update (jarvis folder is now amy)
+
+Latest commit: `d17508b` — The Amy tree moved from `jarvis/` to `amy/`. The Pi user unit is `amy.service`. Desktop shortcut and the local Amy window were pointed at the new path. Old session notes still say jarvis.
+
+- Files: `amy/` (renamed from `jarvis/`), `.gitignore`, `tests/test_flightdeck_page.py`, `tests/test_printer_voice.py`.
+- Pi: stop `jarvis`, pull, move `config.json` into `amy/`, enable `amy.service`. Local Amy was restarted. No Flightdeck service restart.
+
+---
+
 ## 2026-09-27 Session update (duplicates appear while listing)
 
 Latest commit: `23b285a` — Matches were hidden until the whole library had been counted. A second copy is now compared as soon as it is seen, so the list fills while the file count is still climbing.
