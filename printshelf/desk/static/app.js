@@ -1172,7 +1172,7 @@ function renderDuplicates(data) {
   name.textContent = "Duplicates";
   const meta = document.createElement("div");
   meta.className = "dup-meta";
-  const foundBit = data.groupCount ? ` · ${data.groupCount} so far` : "";
+  const foundBit = data.groupCount ? ` · ${data.groupCount} identical so far` : "";
   if (data.running) {
     meta.textContent = data.phase === "hashing"
       ? `Checking files that share a size · ${data.hashed || 0} checked${foundBit}`
@@ -1212,6 +1212,12 @@ function renderDuplicates(data) {
   });
   head.append(title, action);
   page.appendChild(head);
+  if (data.running && !(data.groups || []).length) {
+    const note = document.createElement("div");
+    note.className = "note";
+    note.textContent = "Copies show up here as soon as two files match. Still reading the library.";
+    page.appendChild(note);
+  }
   if (!data.running && !(data.groups || []).length) {
     const note = document.createElement("div");
     note.className = "note";

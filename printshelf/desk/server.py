@@ -780,20 +780,81 @@ def _dup_store(groups: list[dict], *, running: bool, phase: str, scanned: int, c
         warnings=warnings,
         built=time.time() if complete else 0,
         error=error,
-        cancel=False,
     )
+    if not running:
+        _dup_set(cancel=False)
     _save_duplicates()
 
 
+def _hash_one(card: dict, limit: int | None) -> str | None:
+    hashed = _hash_bucket([card], limit)
+    if not hashed:
+        return None
+    return hashed[0][0]
+
+
 def _run_duplicate_scan() -> None:
-    found: list[list[dict]] = []
     warnings: list[str] = []
     scanned = 0
     candidates = 0
+    singles: dict[int, dict] = {}
+    buckets: dict[int, list[dict]] = {}
+    groups_by_digest: dict[str, list[dict]] = {}
+    dirty = False
+    last_save = time.monotonic()
+
+    def publish(running: bool, phase: str, complete: bool, error: str = "") -> None:
+        nonlocal dirty, last_save
+        with _dup_lock:
+            hashed_now = int(_dup_state["hashed"])
+        _dup_store(
+            _dup_groups_from(list(groups_by_digest.values())),
+            running=running,
+            phase=phase,
+            scanned=scanned,
+            candidates=candidates,
+            hashed=hashed_now,
+            complete=complete,
+            warnings=warnings,
+            error=error,
+        )
+        dirty = False
+        last_save = time.monotonic()
+
+    def maybe_publish() -> None:
+        if dirty and time.monotonic() - last_save > 2:
+            publish(True, "listing", False)
+
+    def absorb(size: int, card: dict) -> None:
+        nonlocal dirty, candidates
+        partial_limit = 65536 if size > 65536 else None
+        partial = _hash_one(card, partial_limit)
+        if partial is None:
+            return
+        candidates += 1
+        if size <= 65536:
+            digest = partial
+            buckets[size].append({"card": card, "partial": partial, "full": partial})
+        else:
+            mates = [row for row in buckets[size] if row["partial"] == partial]
+            if not mates:
+                buckets[size].append({"card": card, "partial": partial, "full": None})
+                return
+            digest = _hash_one(card, None)
+            if digest is None:
+                return
+            for mate in mates:
+                if mate["full"] is None:
+                    mate["full"] = _hash_one(mate["card"], None)
+            buckets[size].append({"card": card, "partial": partial, "full": digest})
+        same = [row["card"] for row in buckets[size] if row["full"] == digest]
+        if len(same) > 1:
+            groups_by_digest[digest] = same
+            dirty = True
+            maybe_publish()
+
     try:
         _dup_set(phase="listing", scanned=0, candidates=0, hashed=0, error="", warnings=[], complete=False, groups=[], groupCount=0, reclaimable=0)
-        singles: dict[int, dict] = {}
-        piles: dict[int, list[dict]] = {}
         for root in load_roots():
             folder = Path(root)
             if not folder.exists():
@@ -806,81 +867,25 @@ def _run_duplicate_scan() -> None:
                 if size <= 0:
                     continue
                 scanned += 1
-                if size in piles:
-                    piles[size].append(card)
-                elif size in singles:
-                    piles[size] = [singles.pop(size), card]
+                if size in singles:
+                    first = singles.pop(size)
+                    buckets[size] = []
+                    absorb(size, first)
+                    absorb(size, card)
+                elif size in buckets:
+                    absorb(size, card)
                 else:
                     singles[size] = card
                 if scanned % 250 == 0:
                     _dup_check()
-                    _dup_set(scanned=scanned, warnings=warnings)
+                    _dup_set(scanned=scanned, candidates=candidates, warnings=warnings)
+                    maybe_publish()
         _dup_check()
-        candidates = sum(len(items) for items in piles.values())
-        _dup_set(scanned=scanned, phase="hashing", candidates=candidates, warnings=warnings)
-        last_save = time.monotonic()
-        for _size, items in piles.items():
-            _dup_check()
-            partial = _group_by_hash(_hash_bucket(items, 65536))
-            for copies in partial.values():
-                if all(int(item.get("size") or 0) <= 65536 for item in copies):
-                    found.append(copies)
-                    continue
-                full = _group_by_hash(_hash_bucket(copies, None))
-                found.extend(full.values())
-            if found and time.monotonic() - last_save > 2:
-                with _dup_lock:
-                    hashed_now = int(_dup_state["hashed"])
-                _dup_store(
-                    _dup_groups_from(found),
-                    running=True,
-                    phase="hashing",
-                    scanned=scanned,
-                    candidates=candidates,
-                    hashed=hashed_now,
-                    complete=False,
-                    warnings=warnings,
-                )
-                last_save = time.monotonic()
-        with _dup_lock:
-            hashed_now = int(_dup_state["hashed"])
-        _dup_store(
-            _dup_groups_from(found),
-            running=False,
-            phase="done",
-            scanned=scanned,
-            candidates=candidates,
-            hashed=hashed_now,
-            complete=True,
-            warnings=warnings,
-        )
+        publish(False, "done", True)
     except _DupStop:
-        with _dup_lock:
-            hashed_now = int(_dup_state["hashed"])
-        _dup_store(
-            _dup_groups_from(found),
-            running=False,
-            phase="partial",
-            scanned=scanned,
-            candidates=candidates,
-            hashed=hashed_now,
-            complete=False,
-            warnings=warnings,
-        )
+        publish(False, "partial", False)
     except Exception as exc:
-        with _dup_lock:
-            hashed_now = int(_dup_state["hashed"])
-        _dup_store(
-            _dup_groups_from(found),
-            running=False,
-            phase="done",
-            scanned=scanned,
-            candidates=candidates,
-            hashed=hashed_now,
-            complete=False,
-            warnings=warnings,
-            error=str(exc),
-        )
+        publish(False, "done", False, str(exc))
 
 
 def start_duplicate_scan() -> bool:
