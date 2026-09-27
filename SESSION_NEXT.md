@@ -1,3 +1,12 @@
+## 2026-09-27 Session update (duplicates scan keeps matches)
+
+Latest commit: `717228e` — The empty Duplicates page was an unfinished scan, not a clean library. The old library still has 532 copies in 243 groups, mostly on Koko. The scan now lists that share without stat-ing every excluded folder, saves matches as it finds them, and includes whole zip archives as well as the models inside them.
+
+- Files: `printshelf/desk/server.py`, `printshelf/desk/static/app.js`, `index.html`. Cache: `app.js?v=32`.
+- Local MeshFinder was restarted and Analyze is running. Open Duplicates to watch the count. No Pi service restart.
+
+---
+
 ## 2026-09-26 Session update (tick folders to exclude)
 
 Latest commit: `37c62d6` — Each folder has a checkbox. A button above the list reads “N folders to exclude” and hides every ticked folder in one go. The tree stays put. The config folders were already saved as excluded; a hard refresh drops them from this window.
