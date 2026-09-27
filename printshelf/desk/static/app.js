@@ -1172,20 +1172,27 @@ function renderDuplicates(data) {
   name.textContent = "Duplicates";
   const meta = document.createElement("div");
   meta.className = "dup-meta";
+  const foundBit = data.groupCount ? ` · ${data.groupCount} so far` : "";
   if (data.running) {
     meta.textContent = data.phase === "hashing"
-      ? `Checking files that share a size · ${data.hashed || 0} checked`
-      : `Looking through the library · ${data.scanned || 0} files`;
+      ? `Checking files that share a size · ${data.hashed || 0} checked${foundBit}`
+      : `Looking through the library · ${data.scanned || 0} files${foundBit}`;
   } else if (data.error) {
     meta.textContent = data.error;
+  } else if (data.phase === "partial") {
+    meta.textContent = data.groupCount
+      ? `${data.groupCount} identical files so far · scan stopped after ${data.scanned || 0} files`
+      : `Scan stopped after ${data.scanned || 0} files. Analyze to keep going.`;
   } else if (data.groupCount) {
-    const more = data.capped ? " · showing the 200 largest" : "";
+    const more = data.capped ? ` · showing ${(data.groups || []).length} largest` : "";
     meta.textContent = `${data.groupCount} identical file${data.groupCount === 1 ? "" : "s"} · ${fmtBytes(data.reclaimable)} spare${more}`;
-  } else if (data.built) {
-    meta.textContent = "No identical files.";
+  } else if (data.complete || data.built) {
+    const checked = data.scanned ? `Checked ${data.scanned} files. ` : "";
+    meta.textContent = `${checked}No identical copies.`;
   } else {
-    meta.textContent = "Same file saved in more than one place.";
+    meta.textContent = "Not checked yet. Analyze reads the library and lists copies.";
   }
+  if ((data.warnings || []).length) meta.textContent += ` · ${data.warnings[0]}`;
   title.append(name, meta);
   const action = document.createElement("button");
   action.type = "button";
@@ -1208,9 +1215,11 @@ function renderDuplicates(data) {
   if (!data.running && !(data.groups || []).length) {
     const note = document.createElement("div");
     note.className = "note";
-    note.textContent = data.built
-      ? "Nothing to clean up."
-      : "Analyze when you want a look. It only spends time on files that are the same size.";
+    note.textContent = data.phase === "partial"
+      ? "Analyze again to walk the library from the start."
+      : (data.complete || data.built)
+        ? "Nothing to clean up."
+        : "Analyze when you want a look. Matches show up while it is still reading.";
     page.appendChild(note);
   }
   for (const group of data.groups || []) page.appendChild(dupGroup(group));

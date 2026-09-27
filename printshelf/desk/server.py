@@ -140,14 +140,42 @@ def save_excluded(items: list[str]) -> None:
     _write_config(data)
 
 
-def _is_excluded(path: Path) -> bool:
+_excluded_stamp: int | None = None
+_excluded_prefixes_cache: list[str] = []
+
+
+def _excluded_prefixes() -> list[str]:
+    """Folder prefixes to hide. Cached so a library walk does not stat the config each file."""
+    global _excluded_stamp, _excluded_prefixes_cache
+    path = config_path()
     try:
-        key = str(path.resolve()).casefold()
-    except Exception:
-        return False
-    for item in load_excluded():
-        other = item.casefold()
-        if key == other or key.startswith(other.rstrip("\\") + "\\"):
+        stamp = path.stat().st_mtime_ns
+    except OSError:
+        stamp = 0
+    if _excluded_stamp == stamp:
+        return _excluded_prefixes_cache
+    prefixes = []
+    for raw in _read_config().get("excluded") or []:
+        text = str(raw).replace("/", "\\").strip().rstrip("\\").casefold()
+        if text.startswith("\\\\?\\unc\\"):
+            text = "\\\\" + text[8:]
+        elif text.startswith("\\\\?\\"):
+            text = text[4:]
+        if text:
+            prefixes.append(text)
+    _excluded_stamp = stamp
+    _excluded_prefixes_cache = prefixes
+    return prefixes
+
+
+def _is_excluded(path: Path) -> bool:
+    key = str(path).replace("/", "\\").rstrip("\\").casefold()
+    if key.startswith("\\\\?\\unc\\"):
+        key = "\\\\" + key[8:]
+    elif key.startswith("\\\\?\\"):
+        key = key[4:]
+    for other in _excluded_prefixes():
+        if key == other or key.startswith(other + "\\"):
             return True
     return False
 
@@ -349,7 +377,7 @@ def _iter_zip_cards(zip_path: Path, printable: bool = True):
         return
 
 
-def _iter_loose_and_zips(folder: Path, printable: bool):
+def _iter_loose_and_zips(folder: Path, printable: bool, with_archives: bool = False):
     """Loose files in this folder, then a mix of every zip sitting beside them.
 
     One zip used to fill the whole first page, so a directory of zips felt like
@@ -365,6 +393,19 @@ def _iter_loose_and_zips(folder: Path, printable: bool):
             continue
         if child.suffix.lower() == ".zip":
             zips.append(child)
+            if with_archives:
+                try:
+                    size = child.stat().st_size
+                except OSError:
+                    size = 0
+                if size > 0:
+                    yield {
+                        "name": child.name,
+                        "path": str(child),
+                        "kind": "zip",
+                        "size": size,
+                        "entry": "",
+                    }
             continue
         try:
             size = child.stat().st_size
@@ -385,16 +426,16 @@ def _iter_loose_and_zips(folder: Path, printable: bool):
         streams = alive
 
 
-def _iter_dir_cards(folder: Path, recursive: bool, printable: bool = True):
+def _iter_dir_cards(folder: Path, recursive: bool, printable: bool = True, with_archives: bool = False):
     if not recursive:
-        yield from _iter_loose_and_zips(folder, printable)
+        yield from _iter_loose_and_zips(folder, printable, with_archives)
         return
     for dirpath, dirnames, _filenames in os.walk(folder):
         dirnames[:] = sorted(
             (name for name in dirnames if not _skip_name(name) and not _is_excluded(Path(dirpath) / name)),
             key=str.lower,
         )
-        yield from _iter_loose_and_zips(Path(dirpath), printable)
+        yield from _iter_loose_and_zips(Path(dirpath), printable, with_archives)
 
 
 def _search_hit(needle: str, card: dict) -> bool:
@@ -531,6 +572,7 @@ def search_library(needle: str, *, printable: bool, offset: int, limit: int) -> 
     return _search_loose(needle, printable=printable, offset=offset, limit=limit)
 
 
+DUP_SHOW = 500
 _dup_lock = threading.Lock()
 _dup_state: dict = {
     "running": False,
@@ -544,6 +586,8 @@ _dup_state: dict = {
     "capped": False,
     "cancel": False,
     "error": "",
+    "warnings": [],
+    "complete": False,
     "built": 0,
 }
 
@@ -561,11 +605,13 @@ def _dup_snapshot() -> dict:
             "scanned": int(_dup_state["scanned"]),
             "candidates": int(_dup_state["candidates"]),
             "hashed": int(_dup_state["hashed"]),
-            "groups": groups[:200],
+            "groups": groups[:DUP_SHOW],
             "groupCount": int(_dup_state["groupCount"]),
             "reclaimable": int(_dup_state["reclaimable"]),
             "capped": bool(_dup_state["capped"]),
             "error": _dup_state["error"],
+            "warnings": list(_dup_state.get("warnings") or []),
+            "complete": bool(_dup_state.get("complete")),
             "built": _dup_state["built"],
         }
 
@@ -589,16 +635,26 @@ def _load_saved_duplicates() -> None:
     if not isinstance(data, dict):
         return
     groups = data.get("groups") if isinstance(data.get("groups"), list) else []
+    complete = bool(data.get("complete"))
+    if complete or data.get("built"):
+        phase = "done"
+    elif groups:
+        phase = "partial"
+    else:
+        phase = "idle"
+    warnings = data.get("warnings") if isinstance(data.get("warnings"), list) else []
     _dup_set(
-        phase="done" if groups or data.get("built") else "idle",
+        phase=phase,
         groups=groups,
         groupCount=int(data.get("groupCount") or len(groups)),
         reclaimable=int(data.get("reclaimable") or 0),
-        capped=bool(data.get("capped")),
+        capped=len(groups) > DUP_SHOW,
         scanned=int(data.get("scanned") or 0),
         candidates=int(data.get("candidates") or 0),
         hashed=int(data.get("hashed") or 0),
         built=data.get("built") or 0,
+        warnings=warnings,
+        complete=complete or bool(data.get("built")),
         error="",
     )
 
@@ -690,17 +746,62 @@ def _group_by_hash(pairs: list[tuple[str, dict]]) -> dict[str, list[dict]]:
     return {digest: copies for digest, copies in buckets.items() if len(copies) > 1}
 
 
+def _dup_groups_from(found: list[list[dict]]) -> list[dict]:
+    groups = []
+    for copies in found:
+        size = int(copies[0].get("size") or 0)
+        waste = size * (len(copies) - 1)
+        groups.append({
+            "hash": hashlib.sha256("|".join(
+                f"{item.get('path')}|{item.get('entry')}" for item in copies
+            ).encode("utf-8", "replace")).hexdigest()[:16],
+            "size": size,
+            "count": len(copies),
+            "reclaimable": waste,
+            "copies": copies,
+        })
+    groups.sort(key=lambda item: (-item["reclaimable"], item["copies"][0]["name"].casefold()))
+    return groups
+
+
+def _dup_store(groups: list[dict], *, running: bool, phase: str, scanned: int, candidates: int, hashed: int, complete: bool, warnings: list[str], error: str = "") -> None:
+    reclaimable = sum(int(item["reclaimable"]) for item in groups)
+    _dup_set(
+        running=running,
+        phase=phase,
+        groups=groups,
+        groupCount=len(groups),
+        reclaimable=reclaimable,
+        capped=len(groups) > DUP_SHOW,
+        scanned=scanned,
+        candidates=candidates,
+        hashed=hashed,
+        complete=complete,
+        warnings=warnings,
+        built=time.time() if complete else 0,
+        error=error,
+        cancel=False,
+    )
+    _save_duplicates()
+
+
 def _run_duplicate_scan() -> None:
+    found: list[list[dict]] = []
+    warnings: list[str] = []
+    scanned = 0
+    candidates = 0
     try:
-        _dup_set(phase="listing", scanned=0, candidates=0, hashed=0, error="")
+        _dup_set(phase="listing", scanned=0, candidates=0, hashed=0, error="", warnings=[], complete=False, groups=[], groupCount=0, reclaimable=0)
         singles: dict[int, dict] = {}
         piles: dict[int, list[dict]] = {}
-        scanned = 0
         for root in load_roots():
             folder = Path(root)
+            if not folder.exists():
+                warnings.append(f"{folder} is not reachable")
+                continue
             if _is_excluded(folder):
                 continue
-            for card in _iter_dir_cards(folder, True, True):
+            for card in _iter_dir_cards(folder, True, True, True):
                 size = int(card.get("size") or 0)
                 if size <= 0:
                     continue
@@ -713,11 +814,12 @@ def _run_duplicate_scan() -> None:
                     singles[size] = card
                 if scanned % 250 == 0:
                     _dup_check()
-                    _dup_set(scanned=scanned)
+                    _dup_set(scanned=scanned, warnings=warnings)
         _dup_check()
-        _dup_set(scanned=scanned, phase="hashing", candidates=sum(len(items) for items in piles.values()))
-        found = []
-        for size, items in piles.items():
+        candidates = sum(len(items) for items in piles.values())
+        _dup_set(scanned=scanned, phase="hashing", candidates=candidates, warnings=warnings)
+        last_save = time.monotonic()
+        for _size, items in piles.items():
             _dup_check()
             partial = _group_by_hash(_hash_bucket(items, 65536))
             for copies in partial.values():
@@ -726,48 +828,59 @@ def _run_duplicate_scan() -> None:
                     continue
                 full = _group_by_hash(_hash_bucket(copies, None))
                 found.extend(full.values())
-        groups = []
-        reclaimable = 0
-        for copies in found:
-            size = int(copies[0].get("size") or 0)
-            waste = size * (len(copies) - 1)
-            reclaimable += waste
-            groups.append({
-                "hash": hashlib.sha256("|".join(
-                    f"{item.get('path')}|{item.get('entry')}" for item in copies
-                ).encode("utf-8", "replace")).hexdigest()[:16],
-                "size": size,
-                "count": len(copies),
-                "reclaimable": waste,
-                "copies": copies,
-            })
-        groups.sort(key=lambda item: (-item["reclaimable"], item["copies"][0]["name"].casefold()))
-        _dup_set(
+            if found and time.monotonic() - last_save > 2:
+                with _dup_lock:
+                    hashed_now = int(_dup_state["hashed"])
+                _dup_store(
+                    _dup_groups_from(found),
+                    running=True,
+                    phase="hashing",
+                    scanned=scanned,
+                    candidates=candidates,
+                    hashed=hashed_now,
+                    complete=False,
+                    warnings=warnings,
+                )
+                last_save = time.monotonic()
+        with _dup_lock:
+            hashed_now = int(_dup_state["hashed"])
+        _dup_store(
+            _dup_groups_from(found),
             running=False,
             phase="done",
-            groups=groups,
-            groupCount=len(groups),
-            reclaimable=reclaimable,
-            capped=len(groups) > 200,
-            built=time.time(),
-            error="",
+            scanned=scanned,
+            candidates=candidates,
+            hashed=hashed_now,
+            complete=True,
+            warnings=warnings,
         )
-        _save_duplicates()
     except _DupStop:
-        _dup_set(
+        with _dup_lock:
+            hashed_now = int(_dup_state["hashed"])
+        _dup_store(
+            _dup_groups_from(found),
             running=False,
-            phase="idle",
-            cancel=False,
-            groups=[],
-            groupCount=0,
-            reclaimable=0,
-            capped=False,
-            built=0,
-            error="",
+            phase="partial",
+            scanned=scanned,
+            candidates=candidates,
+            hashed=hashed_now,
+            complete=False,
+            warnings=warnings,
         )
-        _load_saved_duplicates()
     except Exception as exc:
-        _dup_set(running=False, phase="done", error=str(exc))
+        with _dup_lock:
+            hashed_now = int(_dup_state["hashed"])
+        _dup_store(
+            _dup_groups_from(found),
+            running=False,
+            phase="done",
+            scanned=scanned,
+            candidates=candidates,
+            hashed=hashed_now,
+            complete=False,
+            warnings=warnings,
+            error=str(exc),
+        )
 
 
 def start_duplicate_scan() -> bool:
@@ -872,7 +985,7 @@ def delete_duplicate_copies(body: dict) -> dict:
             _dup_state["groups"] = kept
             _dup_state["groupCount"] = len(kept)
             _dup_state["reclaimable"] = reclaimable
-            _dup_state["capped"] = len(kept) > 200
+            _dup_state["capped"] = len(kept) > DUP_SHOW
         _save_duplicates()
     status = duplicates_status()
     status["ok"] = bool(deleted) and not errors
