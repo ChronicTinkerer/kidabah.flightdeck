@@ -1,3 +1,12 @@
+## 2026-09-27 Session update (duplicates appear while listing)
+
+Latest commit: `23b285a` — Matches were hidden until the whole library had been counted. A second copy is now compared as soon as it is seen, so the list fills while the file count is still climbing.
+
+- Files: `printshelf/desk/server.py`, `printshelf/desk/static/app.js`, `index.html`. Cache: `app.js?v=33`.
+- Local MeshFinder was restarted and Analyze is running again. Open Duplicates. No Pi service restart.
+
+---
+
 ## 2026-09-27 Session update (duplicates scan keeps matches)
 
 Latest commit: `717228e` — The empty Duplicates page was an unfinished scan, not a clean library. The old library still has 532 copies in 243 groups, mostly on Koko. The scan now lists that share without stat-ing every excluded folder, saves matches as it finds them, and includes whole zip archives as well as the models inside them.
